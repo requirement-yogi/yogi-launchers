@@ -1,0 +1,23 @@
+# The role of this Dockerfile is to use Atlasisan's native Confluence
+# and add the Quick Reload.
+
+# APP_VERSION: "7.19.0" or "8.9.0"
+ARG APP_VERSION
+# JDK: "jdk11" or "jdk17"
+ARG JDK
+# APPLE_SUFFIX: "-apple" or ""
+ARG APPLE_SUFFIX
+FROM atlassian/confluence:${APP_VERSION}-${JDK}${APPLE_SUFFIX}
+
+RUN apt-get clean -y && apt-get update -y && apt-get install postgresql-client iputils-ping curl net-tools -y;
+VOLUME /plugin
+
+RUN mkdir -p                /opt/atlassian/confluence/confluence/WEB-INF/atlassian-bundled-plugins/
+COPY ./tmp/quickreload-${QR_VERSION}.jar  /opt/atlassian/confluence/confluence/WEB-INF/atlassian-bundled-plugins/quickreload.jar
+
+COPY ./tmp/quickreload.properties  /var/atlassian/application-data/confluence/quickreload.properties
+RUN chown -R confluence:confluence /var/atlassian/application-data/confluence
+
+RUN echo "log4j.logger.com.atlassian.velocity.htmlsafe.introspection=ERROR" >> /opt/atlassian/confluence/confluence/WEB-INF/classes/log4j.properties
+RUN echo "log4j.logger.com.atlassian.confluence.cache=ERROR" >> /opt/atlassian/confluence/confluence/WEB-INF/classes/log4j.properties
+RUN echo "log4j.logger.com.atlassian.confluence.plugins.synchrony=ERROR" >> /opt/atlassian/confluence/confluence/WEB-INF/classes/log4j.properties

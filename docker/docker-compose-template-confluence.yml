@@ -1,0 +1,84 @@
+version: '3.1'
+
+# Instructions:
+# docker-compose up [--detach]
+# docker-compose logs --follow
+# docker-compose stop
+# docker-compose down
+#
+# Edit your /etc/hosts to add 1 line:
+# 127.0.0.1 c${APP_VERSION}.local
+#
+# http://c${APP_VERSION}.local:${PORT_HTTP}
+#
+# To set up the database in Confluence:
+#    jdbc:postgresql://postgres:5432/confluence # Beware the `postgres`, not `localhost`
+#    Username: confluence
+#    Password: confluence
+# Please your jars in `realpath ./quickreload` to be reloaded
+# To set up the database in IntelliJ: jdbc:postgresql://localhost:${PORT_DB}/confluence
+# Log files are in ./confluence-home/logs/atlassian-confluence.log
+
+services:
+
+  confluence:
+    image: "yogi:confluence-${APP_VERSION}${APPLE_SUFFIX}"
+    environment:
+      - "JVM_SUPPORT_RECOMMENDED_ARGS=-Xdebug
+       -Xrunjdwp:transport=dt_socket,address=*:5005,server=y,suspend=n
+       -Dcom.sun.management.jmxremote.port=9999
+       -Dcom.sun.management.jmxremote.rmi.port=9998
+       -Dcom.sun.management.jmxremote.authenticate=false
+       -Dcom.sun.management.jmxremote.ssl=false
+       -Dapplinks.allow.all.hosts=true
+       -Datlassian.dev.mode=true
+       -Dupm.plugin.upload.enabled=true
+       -Dquickreload.dirs=/plugin"
+      - "ATL_PROXY_NAME=${LETTER}${APP_VERSION}.local"
+      - "ATL_PROXY_PORT=${PORT_HTTP}"
+    ports:
+      - ${PORT_DEBUG}:5005
+      - ${PORT_HTTP}:8090
+    volumes:
+      - "./quickreload:/plugin"
+      # Activate the following line if you want to access the confluence-home directory
+      # - "./confluence-home:/var/atlassian/application-data/confluence"
+      - "./logs:/var/atlassian/application-data/confluence/logs"
+    networks:
+      default:
+      shared-network:
+
+  # Redirects http://${LETTER}${APP_VERSION}.local:${PORT_HTTP} inside the network,
+  # to http://jira:${PORT_INTERNAL}
+  nginx:
+    image: nginx:1.24.0-alpine
+    container_name: "${LETTER}${APP_VERSION}.local"
+    volumes:
+      - ./app-nginx.conf:/etc/nginx/conf.d/app-nginx.conf
+    networks:
+      default:
+      shared-network:
+
+  # Use the hostname 'postgres' from inside the container, i.e.:
+  # jdbc:postgresql://localhost:5432/confluence
+  # If you want to access this DB from your host, please use
+  # 'postgres' instead of 'localhost'
+  postgres:
+    image: postgres:14
+    ports:
+      - ${PORT_DB}:5432
+    environment:
+      - POSTGRES_USER=confluence
+      - POSTGRES_PASSWORD=confluence
+      - POSTGRES_DB=confluence
+      - POSTGRES_INITDB_ARGS=--encoding=UTF-8 --lc-collate=C --lc-ctype=C
+      - LANG=C
+    # volumes:
+      #- "./application-data/postgres:/var/lib/postgresql/data"
+    networks:
+      - default
+
+networks:
+  shared-network:
+    external:
+      name: shared-network

@@ -1,0 +1,28 @@
+# The role of this Dockerfile is to use Atlasisan's native Jira
+# and add the Quick Reload.
+
+# APP_VERSION: "7.19.0" or "8.9.0"
+ARG APP_VERSION
+# JDK: "jdk11" or "jdk17"
+ARG JDK
+# APPLE_SUFFIX: "-apple" or ""
+ARG APPLE_SUFFIX
+FROM atlassian/jira-software:${APP_VERSION}-${JDK}${APPLE_SUFFIX}
+
+RUN apt-get clean -y && apt-get update -y && apt-get install postgresql-client iputils-ping curl net-tools -y;
+VOLUME /plugin
+
+RUN mkdir -p                       $JIRA_HOME/plugins/installed-plugins
+RUN mkdir -p                       $JIRA_HOME/log
+COPY ./tmp/quickreload-${QR_VERSION}.jar         $JIRA_HOME/plugins/installed-plugins/quickreload-5.0.2.jar
+# COPY ./tmp/jira-data-generator-5.0.0.jar $JIRA_HOME/plugins/installed-plugins/jira-data-generator-5.0.0.jar
+COPY ./tmp/quickreload.properties  $JIRA_HOME/quickreload.properties
+COPY ./jira-dbconfig.xml           $JIRA_HOME/dbconfig.xml
+RUN chown -R $RUN_USER:$RUN_USER   $JIRA_HOME
+
+
+# It's useless because the correct file to modify is log4j2.xml
+RUN echo "log4j.logger.com.atlassian.jira.util.stats=ERROR" >> /opt/atlassian/jira/atlassian-jira/WEB-INF/classes/log4j.properties
+# RUN echo "log4j.logger.com.atlassian.velocity.htmlsafe.introspection=ERROR" >> /opt/atlassian/jira/jira/WEB-INF/classes/log4j.properties
+# RUN echo "log4j.logger.com.atlassian.jira.cache=ERROR" >> /opt/atlassian/jira/jira/WEB-INF/classes/log4j.properties
+# RUN echo "log4j.logger.com.atlassian.jira.plugins.synchrony=ERROR" >> /opt/atlassian/jira/jira/WEB-INF/classes/log4j.properties

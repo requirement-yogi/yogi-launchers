@@ -1,16 +1,18 @@
+## Purpose
+
 This repository is an extraction from Requirement Yogi's internal sources, that starts various Confluence/Jira instances. Features:
 * Run several versions of Jira and Confluence in parallel,
-* It just generates a `docker-compose.yml`. 
+* It just generates a series of `docker-compose.yml`, one for each Confluence/Jira version,
 * State is kept between restarts,
 * Quickly reinstall plugins with `cp.sh`,
 * Access the logs, the DB and the Java debug port,
-* It is tested on Macs only (Intel, M1, M3).
+* It is tested on Macs only (Intel and Apple silicon).
 
 ## How to run?
 
 * Build the image you desire, using: `./build-image.sh confluence 9.0.1 --apple`
-** It creates a directory with a file named `docker-compose.yml`
-** If you are using an Apple M1, use the argument `--apple`. If you are on x86, don't.
+  * It creates a directory with a file named `docker-compose.yml`
+  * If you are using an Apple M1, use the argument `--apple`. If you are on x86, don't.
 * Modify your `/etc/hosts` file (instructions given in the created `docker-compose.yml`. We've chosen this option to allow several instances to run in parallel without cookies interfering).
 * Run the image:
 ```
@@ -18,17 +20,18 @@ cd confluence-9.0.1
 docker compose up
 ```
 * You *will* overlook the header of the created `docker-compose.yml`. Look again into it, everything is explained ;) 
-** The URL to access from the browser,
-** The URL/port/credentials to access from an SQL client,
-** The debug port.
+  * The URL to access from the browser,
+  * The URL/port/credentials to access from an SQL client,
+  * The debug port.
 * Install plugins in this instance:
-** Copy the .jar in the `confluence-x.y.z/quickreload/` directory,
-** Or use (./cp.sh) to detect the .jar of the current directory and quick-reload it,
+  * Copy the .jar in the `confluence-x.y.z/quickreload/` directory,
+  * Or use [./cp.sh](./cp.sh) to detect the .jar of the current directory and quick-reload it,
 
 ## Customize!
 
 * We've designed the `cp.sh` according to our needs. Arrange it to make it easy for your developers.
 * We've muted some logs in `Dockerfile-confluence` and `Dockerfile-jira` because it was relevant for us. Arrange it the way you want.
+* Add `cp.sh` to your pom.xml, so that it installs your plugin upon compilation. As usual, [Remie has a very good example in this pom.xml](https://github.com/collabsoft-net/example-confluence-app-with-docker-compose/blob/main/pom.xml#L126).
 
 ## Magics
 
@@ -39,4 +42,4 @@ docker compose up
 
 ## Thanks to...
 
-This setup is inspired from https://github.com/collabsoft-net/example-confluence-app-with-docker-compose .
+This setup is inspired from https://github.com/collabsoft-net/example-confluence-app-with-docker-compose , so thank you Remie!
