@@ -9,6 +9,10 @@ ARG JDK
 ARG APPLE_SUFFIX
 FROM atlassian/confluence:${APP_VERSION}-${JDK}${APPLE_SUFFIX}
 
+# Version of QuickReload.jar. This instruction
+# must be after "FROM" because "FROM" resets the arguments
+ARG QR_VERSION
+
 RUN apt-get clean -y && apt-get update -y && apt-get install postgresql-client iputils-ping curl net-tools -y;
 VOLUME /plugin
 

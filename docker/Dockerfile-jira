@@ -9,12 +9,16 @@ ARG JDK
 ARG APPLE_SUFFIX
 FROM atlassian/jira-software:${APP_VERSION}-${JDK}${APPLE_SUFFIX}
 
+# Version of QuickReload.jar. This instruction
+# must be after "FROM" because "FROM" resets the arguments
+ARG QR_VERSION
+
 RUN apt-get clean -y && apt-get update -y && apt-get install postgresql-client iputils-ping curl net-tools -y;
 VOLUME /plugin
 
 RUN mkdir -p                       $JIRA_HOME/plugins/installed-plugins
 RUN mkdir -p                       $JIRA_HOME/log
-COPY ./tmp/quickreload-${QR_VERSION}.jar         $JIRA_HOME/plugins/installed-plugins/quickreload-5.0.2.jar
+COPY ./tmp/quickreload-${QR_VERSION}.jar         $JIRA_HOME/plugins/installed-plugins/quickreload.jar
 # COPY ./tmp/jira-data-generator-5.0.0.jar $JIRA_HOME/plugins/installed-plugins/jira-data-generator-5.0.0.jar
 COPY ./tmp/quickreload.properties  $JIRA_HOME/quickreload.properties
 COPY ./jira-dbconfig.xml           $JIRA_HOME/dbconfig.xml

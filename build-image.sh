@@ -112,7 +112,7 @@ echo "BASE_IMAGE=$BASE_IMAGE"
 
 #### First, download the jar
 
-if [ ! -f "./docker/tmp/quickreload.jar" ] || [ ! -f "./docker/tmp/quickreload.properties" ] ; then
+if [ ! -f "./docker/tmp/quickreload-${QR_VERSION}.jar" ] || [ ! -f "./docker/tmp/quickreload.properties" ] ; then
 
     QR_PATH="${HOME}/.m2/repository/com/atlassian/labs/plugins/quickreload/${QR_VERSION}/quickreload-${QR_VERSION}.jar"
     echo "Downloading quickreload-${QR_VERSION}.jar"
@@ -168,6 +168,7 @@ docker build \
     --build-arg "APP_VERSION=${APP_VERSION}" \
     --build-arg "JDK=${JDK}" \
     --build-arg "APPLE_SUFFIX=${APPLE_SUFFIX}" \
+    --build-arg "QR_VERSION=${QR_VERSION}" \
     -t "yogi:${APP}-${APP_VERSION}${APPLE_SUFFIX}" \
     --file "Dockerfile-$APP" \
     .
